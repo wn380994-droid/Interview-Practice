@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Practice</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-comment-dots"></i>
+                <span class="logo-text">Interview Practice</span>
+            </div>
+            <div class="nav-links">
+                {% if session.user_id %}
+                    <span class="welcome-text">
+                        <i class="fas fa-user-circle"></i>
+                        {{ session.user_name }}
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('signup') }}" class="btn-signup">
+                        <i class="fas fa-user-plus"></i> Signup
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {% if category == 'success' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif category == 'error' %}
+                            <i class="fas fa-exclamation-circle"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <h1 class="main-title">
+                <i class="fas fa-cogs"></i>
+                How Our System Works?
+            </h1>
+
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3><i class="fas fa-user-plus"></i> Signup/Login</h3>
+                        <p>Create your account or login to get started with personalized interview practice.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3><i class="fas fa-briefcase"></i> Select Position & Language</h3>
+                        <p>Choose your target job position and preferred interview language.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3><i class="fas fa-microphone"></i> Interview Section</h3>
+                        <p>Practice with realistic interview questions and get instant feedback.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3><i class="fas fa-chart-line"></i> Result</h3>
+                        <p>Receive detailed analysis and suggestions for improvement.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                {% if session.user_id %}
+                    <a href="{{ url_for('select_lang_pos') }}" class="cta-button">
+                        <i class="fas fa-play-circle"></i>
+                        Start Practice Now
+                    </a>
+                    <p class="cta-note">Ready to ace your interview!</p>
+                {% else %}
+                    <a href="{{ url_for('start_free') }}" class="cta-button">
+                        <i class="fas fa-rocket"></i>
+                        Start For Free
+                    </a>
+                    <p class="cta-note">No credit card required. Start practicing immediately!</p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p><i class="fas fa-copyright"></i> 2026 Interview Practice. All rights reserved.</p>
+        <p><i class="fas fa-graduation-cap"></i> Practice makes perfect. Start your journey today!</p>
+    </footer>
+</body>
+</html>

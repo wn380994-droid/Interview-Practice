@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Language & Position</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='position.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-comment-dots"></i>
+                <span class="logo-text">Interview Practice </span>
+            </div>
+            <div class="nav-links">
+                <div class="user-info">
+                    <span class="welcome-text">
+                        <i class="fas fa-user-circle"></i>
+                        {{ session.user_name }}
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {% if category == 'success' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif category == 'error' %}
+                            <i class="fas fa-exclamation-circle"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="selection-container">
+        <div class="selection-card">
+            <!-- Language Selection -->
+            <div class="section-title">
+                <h1><i class="fas fa-language"></i> Select A Language</h1>
+                <p>Choose your preferred interview language</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('select_lang_pos') }}" id="selectionForm">
+                <div class="language-selection">
+                    <div class="language-option">
+                        <input type="radio" id="english" name="language" value="English" required>
+                        <label for="english" class="language-card">
+                            <div class="language-icon">
+                                <i class="fas fa-flag-usa"></i>
+                            </div>
+                            <h3>English</h3>
+                            <p>Practice interview in English language</p>
+                        </label>
+                    </div>
+
+                    <div class="language-option">
+                        <input type="radio" id="myanmar" name="language" value="Myanmar" required>
+                        <label for="myanmar" class="language-card">
+                            <div class="language-icon">
+                                <i class="fas fa-flag"></i>
+                            </div>
+                            <h3>Myanmar</h3>
+                            <p>Practice interview in Myanmar language</p>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Position Selection -->
+                <div class="section-title">
+                    <h1><i class="fas fa-briefcase"></i> Select A Position</h1>
+                    <p>Choose your target job position</p>
+                </div>
+
+                <div class="positions-grid">
+                    <!-- Row 1 -->
+                    <div class="position-option">
+                        <input type="radio" id="software-engineer" name="position" value="Software Engineer" required>
+                        <label for="software-engineer" class="position-card">
+                            <div class="position-icon">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <h3>Software Engineer</h3>
+                            <p>Backend, Frontend, Full-stack development</p>
+                        </label>
+                    </div>
+
+                    <div class="position-option">
+                        <input type="radio" id="data-analyst" name="position" value="Data Analyst" required>
+                        <label for="data-analyst" class="position-card">
+                            <div class="position-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3>Data Analyst</h3>
+                            <p>Data analysis, visualization, and reporting</p>
+                        </label>
+                    </div>
+
+                    <div class="position-option">
+                        <input type="radio" id="project-manager" name="position" value="Project Manager" required>
+                        <label for="project-manager" class="position-card">
+                            <div class="position-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h3>Project Manager</h3>
+                            <p>Project planning and team management</p>
+                        </label>
+                    </div>
+
+                    <div class="position-option">
+                        <input type="radio" id="ux-designer" name="position" value="UX Designer" required>
+                        <label for="ux-designer" class="position-card">
+                            <div class="position-icon">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <h3>UX Designer</h3>
+                            <p>User experience and interface design</p>
+                        </label>
+                    </div>
+
+                    <!-- Row 2 -->
+                    <div class="position-option">
+                        <input type="radio" id="marketing-specialist" name="position" value="Marketing Specialist" required>
+                        <label for="marketing-specialist" class="position-card">
+                            <div class="position-icon">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <h3>Marketing Specialist</h3>
+                            <p>Digital marketing and campaign management</p>
+                        </label>
+                    </div>
+
+                    <div class="position-option">
+                        <input type="radio" id="sales-executive" name="position" value="Sales Executive" required>
+                        <label for="sales-executive" class="position-card">
+                            <div class="position-icon">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <h3>Sales Executive</h3>
+                            <p>Sales strategies and client relationships</p>
+                        </label>
+                    </div>
+
+                    <div class="position-option">
+                        <input type="radio" id="hr-manager" name="position" value="HR Manager" required>
+                        <label for="hr-manager" class="position-card">
+                            <div class="position-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3>HR Manager</h3>
+                            <p>Human resources and talent management</p>
+                        </label>
+                    </div>
+
+                    <div class="position-option">
+                        <input type="radio" id="finance-analyst" name="position" value="Finance Analyst" required>
+                        <label for="finance-analyst" class="position-card">
+                            <div class="position-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3>Finance Analyst</h3>
+                            <p>Financial analysis and planning</p>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="submit-section">
+                    <button type="submit" class="start-interview-btn">
+                        <i class="fas fa-play-circle"></i> Start Interview
+                    </button>
+                    <p class="note">You can change your selection anytime</p>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p><i class="fas fa-copyright"></i> 2026 Interview Practice. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Add visual feedback when selecting options
+        document.querySelectorAll('.language-option, .position-option').forEach(option => {
+            const input = option.querySelector('input[type="radio"]');
+            const label = option.querySelector('label');
+
+            input.addEventListener('change', function() {
+                // Remove selected class from all options
+                document.querySelectorAll('.language-option, .position-option').forEach(opt => {
+                    opt.querySelector('label').classList.remove('selected');
+                });
+
+                // Add selected class to current option
+                if (this.checked) {
+                    label.classList.add('selected');
+                }
+            });
+
+            // Also trigger on label click
+            label.addEventListener('click', function() {
+                // Remove selected class from all options in same group
+                const name = input.getAttribute('name');
+                document.querySelectorAll(`input[name="${name}"]`).forEach(inp => {
+                    inp.parentElement.querySelector('label').classList.remove('selected');
+                });
+
+                // Add selected class to clicked label
+                this.classList.add('selected');
+            });
+        });
+
+        // Form validation
+        document.getElementById('selectionForm').addEventListener('submit', function(e) {
+            const language = document.querySelector('input[name="language"]:checked');
+            const position = document.querySelector('input[name="position"]:checked');
+
+            if (!language || !position) {
+                e.preventDefault();
+                alert('Please select both language and position!');
+                return false;
+            }
+
+            return true;
+        });
+    </script>
+</body>
+</html>
