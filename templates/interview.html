@@ -8,16 +8,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='interview.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Face API -->
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <!-- MediaPipe Hands (more stable) -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
         .modal-content { background: white; border-radius: 30px; padding: 2.5rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.3); animation: modalSlideIn 0.4s; }
         @keyframes modalSlideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-header h2 { display: flex; align-items: center; gap: 15px; color: #4361ee; font-size: 2rem; margin-bottom: 2rem; }
         .result-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         .result-card { text-align: center; background: #f8fafc; padding: 1.5rem; border-radius: 15px; border: 2px solid #e2e8f0; }
         .result-icon i { font-size: 2rem; color: #4361ee; margin-bottom: 0.5rem; }
@@ -43,17 +40,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo"><i class="fas fa-comment-dots"></i><span class="logo-text">Interview Practice - {{ selected_position }}</span></div>
-            <div class="nav-links">
-                <div class="user-info">
-                    <span class="welcome-text"><i class="fas fa-user-circle"></i>{{ session.user_name }}</span>
-                    <a href="{{ url_for('logout') }}" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    {% include 'includes/navbar.html' %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -150,6 +137,8 @@
 
     <footer class="footer"><p><i class="fas fa-copyright"></i> 2026 Interview Practice. All rights reserved.</p></footer>
 
+    {% include 'includes/premium_modal.html' %}
+    <script src="{{ url_for('static', filename='premium.js') }}"></script>
     <script>
         // ========== GLOBAL VARIABLES ==========
         let video = document.getElementById('webcamVideo');
@@ -183,6 +172,9 @@
         // Gesture state
         let lastGesture = null;
         let gestureCooldown = false;
+
+        // Flag to block further actions after modal shown
+        let interviewCompleted = false;
 
         // ========== INITIALIZATION ==========
         window.addEventListener('load', async () => {
@@ -231,7 +223,7 @@
         }
 
         function onHandResults(results) {
-            if (!isCameraOn || gestureCooldown) return;
+            if (!isCameraOn || gestureCooldown || interviewCompleted) return;
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const landmarks = results.multiHandLandmarks[0];
                 let fingers = 0;
@@ -333,10 +325,12 @@
             clearInterval(faceDetectionInterval);
             document.getElementById('gestureStatus').innerText = 'Camera stopped';
             ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            // Reset metrics to 0
+            updateMetrics(0, 0, 0);
         });
 
         async function detectFace() {
-            if (!isCameraOn || !modelsLoaded) return;
+            if (!isCameraOn || !modelsLoaded || interviewCompleted) return;
             try {
                 const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
 
@@ -352,7 +346,6 @@
                     if (eyeContactHistory.length > HISTORY_LEN) eyeContactHistory.shift();
                     const avgEye = eyeContactHistory.reduce((a,b)=>a+b,0) / eyeContactHistory.length;
 
-                    // More accurate expression scoring
                     const expressions = det.expressions;
                     let maxExpr = 'neutral';
                     let maxVal = 0;
@@ -360,27 +353,25 @@
                         if (val > maxVal) { maxVal = val; maxExpr = expr; }
                     }
 
-                    // Enhanced expression scoring
-                    let exprScore = 30; // default low
-                    if (maxExpr === 'happy') exprScore = 95;      // very confident
-                    else if (maxExpr === 'neutral') exprScore = 60; // neutral
-                    else if (maxExpr === 'surprised') exprScore = 45; // surprised (can be positive or negative)
-                    else if (maxExpr === 'fearful') exprScore = 15;   // fearful -> low confidence
-                    else if (maxExpr === 'angry') exprScore = 20;     // angry -> low
-                    else if (maxExpr === 'disgusted') exprScore = 20; // disgusted -> low
-                    else if (maxExpr === 'sad') exprScore = 10;       // sad -> very low
+                    let exprScore = 30;
+                    if (maxExpr === 'happy') exprScore = 95;
+                    else if (maxExpr === 'neutral') exprScore = 60;
+                    else if (maxExpr === 'surprised') exprScore = 45;
+                    else if (maxExpr === 'fearful') exprScore = 15;
+                    else if (maxExpr === 'angry') exprScore = 20;
+                    else if (maxExpr === 'disgusted') exprScore = 20;
+                    else if (maxExpr === 'sad') exprScore = 10;
 
                     expressionHistory.push(exprScore);
                     if (expressionHistory.length > HISTORY_LEN) expressionHistory.shift();
                     const avgExpr = expressionHistory.reduce((a,b)=>a+b,0) / expressionHistory.length;
 
-                    // Confidence is weighted more on expression (70%) than eye contact (30%)
                     const confidence = (avgEye * 0.3 + avgExpr * 0.7);
                     updateMetrics(avgEye, avgExpr, confidence);
                     avgConfidenceSum += confidence;
                     avgConfidenceCount++;
                 } else {
-                    // No face detected -> very low confidence
+                    // No face detected when camera is on: show low confidence
                     updateMetrics(0, 0, 10);
                     eyeContactHistory.push(0);
                     expressionHistory.push(10);
@@ -421,6 +412,7 @@
         }
 
         async function fetchNextQuestion() {
+            if (interviewCompleted) return;
             try {
                 const res = await fetch('/api/next-question');
                 const data = await res.json();
@@ -460,6 +452,7 @@
         }
 
         document.getElementById('submitAnswerBtn').addEventListener('click', async () => {
+            if (interviewCompleted) return;
             const selected = document.querySelector('input[name="answer"]:checked');
             if (!selected) { alert('Please select an answer!'); return; }
             const answerId = selected.value;
@@ -470,21 +463,31 @@
             if (isCorrect) correctCount++;
             updateProgress();
 
-            const avgConf = avgConfidenceCount > 0 ? avgConfidenceSum / avgConfidenceCount : 50;
+            const avgConf = avgConfidenceCount > 0 ? avgConfidenceSum / avgConfidenceCount : (isCameraOn ? 50 : 0);
+            // If camera is off, set confidence to 0
+            const finalConf = isCameraOn ? avgConf : 0;
+
             try {
                 const res = await fetch('/api/submit-answer', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question_id: currentQuestionId, answer_id: answerId, confidence: { avg: avgConf } })
+                    body: JSON.stringify({ question_id: currentQuestionId, answer_id: answerId, confidence: { avg: finalConf } })
                 });
                 const data = await res.json();
-                if (data.completed) showResults(data.results);
-                else if (data.question) displayQuestion(data);
-                else alert('Error: ' + (data.error || 'Unknown'));
+                if (data.completed) {
+                    interviewCompleted = true;
+                    showResults(data.results);
+                } else if (data.question) {
+                    displayQuestion(data);
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown'));
+                }
             } catch (e) { alert('Network error'); }
         });
 
-        document.getElementById('nextQuestionBtn').addEventListener('click', fetchNextQuestion);
+        document.getElementById('nextQuestionBtn').addEventListener('click', () => {
+            if (!interviewCompleted) fetchNextQuestion();
+        });
 
         function updateProgress() {
             document.getElementById('answeredCount').innerText = answeredCount;
@@ -532,9 +535,22 @@
             }
 
             document.getElementById('resultsModal').style.display = 'flex';
+            // Disable further interactions with interview interface
+            document.getElementById('submitAnswerBtn').disabled = true;
+            document.getElementById('nextQuestionBtn').disabled = true;
+            // Disable radio buttons
+            document.querySelectorAll('input[name="answer"]').forEach(r => r.disabled = true);
         }
 
-        window.addEventListener('click', (e) => { if (e.target === document.getElementById('resultsModal')) document.getElementById('resultsModal').style.display = 'none'; });
+        // Ensure modal cannot be closed by clicking outside
+        const modal = document.getElementById('resultsModal');
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                // do nothing, prevent closing
+                e.stopPropagation();
+            }
+        });
     </script>
 </body>
 </html>
+
