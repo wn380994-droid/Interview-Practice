@@ -9,35 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">
-                <i class="fas fa-comment-dots"></i>
-                <span class="logo-text">Interview Practice</span>
-            </div>
-            <div class="nav-links">
-                {% if session.user_id %}
-                    <span class="welcome-text">
-                        <i class="fas fa-user-circle"></i>
-                        {{ session.user_name }}
-                    </span>
-                    <a href="{{ url_for('logout') }}" class="btn-logout">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}" class="btn-signup">
-                        <i class="fas fa-user-plus"></i> Signup
-                    </a>
-                    <a href="{{ url_for('login') }}" class="btn-login">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
+    {% include 'includes/navbar.html' %}
 
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="flash-messages">
@@ -57,14 +30,12 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Main Content -->
     <main class="main-content">
         <div class="container">
             <h1 class="main-title">
                 <i class="fas fa-cogs"></i>
                 How Our System Works?
             </h1>
-
             <div class="steps-container">
                 <div class="step">
                     <div class="step-number">1</div>
@@ -73,7 +44,6 @@
                         <p>Create your account or login to get started with personalized interview practice.</p>
                     </div>
                 </div>
-
                 <div class="step">
                     <div class="step-number">2</div>
                     <div class="step-content">
@@ -81,7 +51,6 @@
                         <p>Choose your target job position and preferred interview language.</p>
                     </div>
                 </div>
-
                 <div class="step">
                     <div class="step-number">3</div>
                     <div class="step-content">
@@ -89,7 +58,6 @@
                         <p>Practice with realistic interview questions and get instant feedback.</p>
                     </div>
                 </div>
-
                 <div class="step">
                     <div class="step-number">4</div>
                     <div class="step-content">
@@ -98,18 +66,15 @@
                     </div>
                 </div>
             </div>
-
             <div class="cta-section">
                 {% if session.user_id %}
                     <a href="{{ url_for('select_lang_pos') }}" class="cta-button">
-                        <i class="fas fa-play-circle"></i>
-                        Start Practice Now
+                        <i class="fas fa-play-circle"></i> Start Practice
                     </a>
                     <p class="cta-note">Ready to ace your interview!</p>
                 {% else %}
                     <a href="{{ url_for('start_free') }}" class="cta-button">
-                        <i class="fas fa-rocket"></i>
-                        Start For Free
+                        <i class="fas fa-rocket"></i> Start For Free
                     </a>
                     <p class="cta-note">No credit card required. Start practicing immediately!</p>
                 {% endif %}
@@ -117,10 +82,12 @@
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
         <p><i class="fas fa-copyright"></i> 2026 Interview Practice. All rights reserved.</p>
         <p><i class="fas fa-graduation-cap"></i> Practice makes perfect. Start your journey today!</p>
     </footer>
+
+    {% include 'includes/premium_modal.html' %}
+    <script src="{{ url_for('static', filename='premium.js') }}"></script>
 </body>
 </html>
